@@ -21,6 +21,8 @@ To run the accompanying shiny app, execute the following command:
 visualMLE::shiny_mle()
 ```
 
+![visualMLE Shiny App Screenshot](vignettes/visualMLE_shiny_screenshot.png)
+
 ----------
 
 *Acknowledgments:* Thanks to [Bruce Dudek](https://www.albany.edu/psychology/statistics/shinypsych.htm) for comments and suggestions and to [Jorge Cimentada's](https://cimentadaj.github.io) [blog post](https://cimentadaj.github.io/blog/2020-11-26-maximum-likelihood-distilled/maximum-likelihood-distilled/) that inspired me to build this shiny application.

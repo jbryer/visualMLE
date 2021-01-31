@@ -6,6 +6,9 @@
 \usage{
 isBinary(x)
 }
+\arguments{
+\item{x}{vector to check.}
+}
 \value{
 TRUE if the vector is binary.
 }

@@ -2,13 +2,11 @@
 title: "Visual Introduction to Maximum Likelihood Estimation"
 author: "Jason Bryer, Ph.D."
 date: "`r Sys.Date()`"
-output:
-  rmarkdown::html_document:
-    code_folding: hide
+output:  knitr:::html_vignette
 vignette: >
   %\VignetteIndexEntry{Visual Introduction to Maximum Likelihood Estimation}
-  %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
+  %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   chunk_output_type: console
 ---
@@ -30,7 +28,7 @@ library(DT)
 data(mtcars)
 ```
 
-[Maximum Likelihood Estimation](https://en.wikipedia.org/wiki/Maximum_likelihood_estimation) (MLE) is an important procedure for estimating parameters in statistical models. It is often first encountered when modeling a dichotomous outcome variable vis-à-vis logistic regression. However, it is the backbone of [generalized linear models](https://en.wikipedia.org/wiki/Generalized_linear_model) (GLM) which allow for error distribution models other than the normal distribution. This document was inspired by the [blog post by Jorge Cimentada](https://cimentadaj.github.io/blog/2020-11-26-maximum-likelihood-distilled/maximum-likelihood-distilled/) to provide some additional details about each step of MLE.
+[Maximum Likelihood Estimation](https://en.wikipedia.org/wiki/Maximum_likelihood_estimation) (MLE) is an important procedure for estimating parameters in statistical models. It is often first encountered when modeling a dichotomous outcome variable vis-à-vis logistic regression. However, it is the backbone of [generalized linear models](https://en.wikipedia.org/wiki/Generalized_linear_model) (GLM) which allow for error distribution models other than the normal distribution. Most introductions to MLE rely on mathematical notation that for many students is opaque and hinders learning how this method works. The document outlines an approach to understanding MLE that relies on visualizations and mathematical notation is only used when necessary.
 
 We will begin with a typical bivariate regression using the `mtcars` data set where we wish to predict `mpg` (miles per gallon) from `wt` (weight in 1,000 lbs). Figure 1 is a scatter plot showing the relationship between these two variables.
 
@@ -51,14 +49,27 @@ With ordinary least squares (OLS) regression our goal is to minimize the residua
 
 $$RSS=\sum^{n}_{i=1} \left( y_{i}-f(x_{i})\right)^{2}$$
 
-where $y_i$ is the variable to be predicted, $f(x_i)$ is the predicted value of $y_i$, and $n$ is the sample size. Here is what we know about regression:
+where $y_i$ is the variable to be predicted, $f(x_i)$ is the predicted value of $y_i$, and $n$ is the sample size. Figure 2 superimposes the residuals on the scatter plot. By squaring the length of each of those lines we accomplish two things: 1) we make all the values to be summed positive (i.e. a line that fits all the data perfectly will have a RSS = 0) and 2) points that fall further from the regression line contribute more (geometrically more) to the RSS then points close to the regression line. 
+
+```{r echo = FALSE, fig.cap = 'Figure 2 Scatter plot with residuals.'}
+lm.out <- lm(mpg ~ wt, data = mtcars)
+mtcars$predicted <- predict(lm.out)
+mtcars$resid <- resid(lm.out)
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+	geom_point() +
+	geom_abline(intercept = lm.out$coefficients[1],
+				slope = lm.out$coefficients[2], color = 'blue') +
+	geom_segment(aes(xend = wt, yend = predicted), color = '#e31a1c')
+```
+
+The basic properties we know about regression are:
 
 * The correlation measures the strength of the relationship between x and y (see [this shiny app](https://shiny.rit.albany.edu/stat/rectangles/) for an excellent visual overview of correlations).
 * The correlation ranges between -1 and 1.
 * The mean of x and y must fall on the line.
-* The slope is the change in y over the change in x and is defined as $m = r * (\sigma_y / \sigma_x)$. Where $r$ is the correlation and $\sigma$ is the sample standard deviation.
+* The slope of a line is defined as the change in y over the change in x ($\frac{\Delta y}{\Delta x}$). For regression use the ration of the standard deviations such that the correlation is defined as $m = r \frac{s_y}{s_x}$ where $m$ is the slope, $r$ is the correlation, and $s$ is the sample standard deviation.
 
-We can easily calculate the RSS for various correlations ($r$) ranging between -1 and 1. Figure 2 visualizes the RSS.
+We can easily calculate the RSS for various correlations ($r$) ranging between -1 and 1. Figure 3 visualizes the RSS.
 
 ```{r class.source = 'fold-show'}
 y <- mtcars$mpg
@@ -74,10 +85,10 @@ ols <- tibble(
 ) %>% rowwise() %>%
 	mutate(ss = sum((y - (m * x + b))^2)) %>% # Sum of squares residuals
 	as.data.frame()
-datatable(ols)
+datatable(ols) %>% formatRound(columns = names(ols), digits=3)
 ```
 
-```{r, echo = FALSE, fig.cap = 'Figure 2. Residual sum of squares.'}
+```{r, echo = FALSE, fig.cap = 'Figure 3. Residual sum of squares.'}
 ggplot(ols, aes(x = r, y = ss)) + geom_path() + geom_point()
 ```
 
@@ -91,16 +102,15 @@ Calculating the correlation in R gives us `r cor(x, y)` and the slope is `r cor(
 
 ## Minimizing RSS Algorithmically
 
-This approach works well here because the correlation is bounded between -1 and 1 and we can easily calculate the RSS for a bunch of possible correlations. However, there are more efficient ways of finding the correlation that minimizes the RSS than trying correlations equally distributed across the range. For example, consider the following algorithm:
+This approach works well here because the correlation is bounded between -1 and 1 and we can easily calculate the RSS for a bunch of possible correlations. However, there are more efficient ways of finding the correlation that minimizes the RSS than trying correlations equally distributed across the possible range. For example, consider the following simple algorithm:
 
 1. Calculate the RSS for $r = 0$. 
 2. Calculate the RSS for $r = 0.5$ If $RSS_{0.5} < RSS_{0}$ then calculate the RSS with $r = 0.75$, else calculate the RSS with $r = -0.5%$
 
-We can repeat this procedure, essentially halving the distance in each iteration until we find a sufficiently small RSS. This process is, in essence, the idea of numerical optimization procedures. In R, the `optim` function implements the [Nedler-Mead](https://en.wikipedia.org/wiki/Nelder–Mead_method) method for optimizing a set of parameters. The details of *how* the algorithm works is beyond the scope of this article (see this [interactive tutoral](https://www.benfrederickson.com/numerical-optimization/) by Ben Frederickson for a good introduction), instead we will focus on *what* the algorithm does. To begin, we must define a function that calculates a metric for which the optimizer is going to minimize (or maximize). Let's start with RSS:
+We can repeat this procedure, essentially halving the distance in each iteration until we find a sufficiently small RSS. This process is, in essence, the idea of numerical optimization procedures. In R, the `optim` function implements the [Nedler-Mead](https://en.wikipedia.org/wiki/Nelder–Mead_method) (Nedler & Mead, 1965) and [Limited Memory BFGS](https://en.wikipedia.org/wiki/Limited-memory_BFGS) (Byrd et al, 1995) methods for optimizing a set of parameters. The former is the default but we will use the latter throughout this document since it allows for specifying bounds for certain parameters (e.g. only consider positive values). The details of *how* the algorithm works is beyond the scope of this article (see this [interactive tutoral](https://www.benfrederickson.com/numerical-optimization/) by Ben Frederickson for a good introduction), instead we will focus on *what* the algorithm does. To begin, we must define a function that calculates a metric for which the optimizer is going to minimize (or maximize). Let's start with RSS:
 
 ```{r class.source = 'fold-show'}
-# Change to residSumSquares
-sumsquares <- function(parameters, predictor, outcome) {
+residual_sum_squares <- function(parameters, predictor, outcome) {
 	a <- parameters[1] # Intercept
 	b <- parameters[2] # beta coefficient
 	predicted <- a + b * predictor
@@ -113,10 +123,10 @@ sumsquares <- function(parameters, predictor, outcome) {
 The `parameters` is a vector of the parameters the algorithm is going to minimize (or maximize). Here, these will be the slope and intercept. The `predictor` and `outcome` are parameters passed through from the `...` parameter on the `optim` function and are necessary for us to calculate the RSS. We can now get the RSS for any set of parameters.
 
 ```{r class.source = 'fold-show'}
-sumsquares(c(37, -5), mtcars$wt, mtcars$mpg)
+residual_sum_squares(c(37, -5), mtcars$wt, mtcars$mpg)
 ```
 
-**Small Digression** In order to explore each step of the algorithm, we need to wrap the `optim` function to capture the parameters and output of the function. This function will overwrite the `optim` function in the current environment to add to elements to the returned list: `iterations` is the raw list of the parameters and output saved and `iterations_df` is a `data.frame` version. Typically overwriting a function like this is bad practice (please don't email me) but is efficient for my purposes here.
+**Small Digression** In order to explore each step of the algorithm, we need to wrap the `optim` function to capture the parameters and output of the function. The `optim_save`^[This function is available in the `visualMLE` package.] function will add two elements to the returned list: `iterations` is the raw list of the parameters and output saved and `iterations_df` is a `data.frame` containing the same data.
 
 ```{r class.source = 'fold-show'}
 optim_save <- function(par, fn, ...) {
@@ -137,12 +147,12 @@ optim_save <- function(par, fn, ...) {
 ```
 
 
-We can now call the `optim_save` function with our `sumsquares` function. We initialize the algorithm with two random values for the intercept and slope, respectively. Note that we are using Broyden, Fletcher, Goldfarb, and Shanno optimization method which allows for the specification of bounds on the parameter estimates which we will use later.
+We can now call the `optim_save` function with our `residual_sum_squares` function. We initialize the algorithm with two random values for the intercept and slope, respectively. Note that we are using Broyden, Fletcher, Goldfarb, and Shanno optimization method which allows for the specification of bounds on the parameter estimates which we will use later.
 
 ```{r class.source = 'fold-show'}
 optim.rss <- optim_save(
 	par = runif(2),
-	fn = sumsquares, 
+	fn = residual_sum_squares, 
 	method = "L-BFGS-B",
 	predictor = mtcars$wt,
 	outcome = mtcars$mpg
@@ -162,11 +172,11 @@ lm.out <- lm(mpg ~ wt, data = mtcars)
 lm.out$coefficients
 ```
 
-It took the `optim` function `r nrow(optim.rss$iterations_df)` iterations to find the optimal set of parameters that minimized the RSS. Figure 3 shows the value of the parameters (i.e. intercept and slope) and the RSS for each iteration.
+It took the `optim` function `r nrow(optim.rss$iterations_df)` iterations to find the optimal set of parameters that minimized the RSS. Figure 4 shows the value of the parameters (i.e. intercept and slope) and the RSS for each iteration.
 
-```{r, fig.cap = 'Figure 3. Output of the optimizaiton procedure at each iteration.'}
+```{r, fig.cap = 'Figure 4. Output of the optimizaiton procedure at each iteration.'}
 df <- optim.rss$iterations_df
-names(df) <- c('Intercept', 'Slope', 'SumSquares', 'Iteration')
+names(df) <- c('Intercept', 'Slope', 'ResidualSumSquares', 'Iteration')
 df %>% melt(id.var = 'Iteration') %>%
 	ggplot(aes(x = Iteration, y = value, color = variable)) +
 	geom_point(size = 1) + geom_path() +
@@ -174,11 +184,12 @@ df %>% melt(id.var = 'Iteration') %>%
 	xlab('Iteration') + ylab('') + theme(legend.position = 'none')
 ```
 
+
 ## Likelihood
 
-Now that we have laid the groundwork for finding parameters algorithmically, we need to introduce another way of evaluating how well parameters *fit* the data, namely the likelihood. First, let's revisit what we are doing in OLS. Figure 4 is a scatter plot of our observations, the OLS regression line in blue, and one observation highlighted in red with the residual as a red line. With OLS, we square the residual for every observation, thereby making all values positive, and summing them. There is, however, another way of estimating fit that doesn't rely on the residuals.
+Now that we have laid the groundwork for finding parameters algorithmically, we need to introduce another way of evaluating how well parameters *fit* the data, namely the likelihood. First, let's revisit what we are doing in OLS. Figure 5 is a scatter plot of our observations, the OLS regression line in blue, and one observation highlighted in red with the residual as a red line. With OLS, we square the residual for every observation, thereby making all values positive, and summing them. There is, however, another way of estimating fit that doesn't rely on the residuals.
 
-```{r, fig.cap='Figure 4. Scatter plot with residuals for one observation.'}
+```{r, echo = FALSE, fig.cap='Figure 5. Scatter plot with residuals for one observation.'}
 pt <- 1 # Which observation do we want to explore
 mtcars$fitted_mpg <- fitted(lm.out)
 a <- lm.out$coefficients[1]
@@ -193,10 +204,9 @@ ggplot(mtcars, aes(x = wt, y = mpg)) +
 	geom_smooth(method = 'lm', formula = y ~ x, se = FALSE)
 ```
 
+We often think of probabilities as the areas under a fixed distribution. For example, the first car in `mtcars` is `r row.names(mtcars)[pt]` with an average miles per gallon of `r mtcars[pt,]$mpg` and weighs `r mtcars[pt,]$wt * 1000`lbs. The probability of a car with a miles per gallon less than `r row.names(mtcars)[pt]` given the data we have in `mtcars` is `r pnorm(mtcars[pt,]$mpg, mean(mtcars$mpg), sd = sd(mtcars$mpg))` and is depicted in Figure 6.
 
-We often think of probabilities as the areas under a fixed distribution. For example, the first car in `mtcars` is `r row.names(mtcars)[pt]` with an average miles per gallon of `r mtcars[pt,]$mpg` and weighs `r mtcars[pt,]$wt * 1000`lbs. The probability of a car with a miles per gallon less than `r row.names(mtcars)[pt]` given the data we have in `mtcars` is `r pnorm(mtcars[pt,]$mpg, mean(mtcars$mpg), sd = sd(mtcars$mpg))` and is depicted in Figure 5.
-
-```{r, fig.cap = 'Figure 5. Probability distribution of miles per gallan.'}
+```{r, echo = FALSE, fig.cap = 'Figure 6. Probability distribution of miles per gallan.'}
 ggplot() +
 	stat_function(fun = dnorm, n = 101, geom = "line",
 				  args = list(mean = mean(mtcars$mpg),
@@ -217,9 +227,9 @@ $$pr(data\ |\ distribution)$$
 The likelihood are the y-axis values (i.e. density) for fixed data points with distributions that can move, that is: 
 
 $$L(distribution\ |\ data)$$
-The likelihood is the height of the density function. Figure 6 depicts two likelihood for two observations. The mean of each distribution is equal to $\beta_{wt} X + e$ and the intercept (also known as the error term) defines the standard deviation of the distribution.
+The likelihood is the height of the density function. Figure 7 depicts two likelihood for two observations. The mean of each distribution is equal to $\beta_{wt} X + e$ and the intercept (also known as the error term) defines the standard deviation of the distribution.
 
-```{r, fig.cap = 'Figure 6. Likelihood of a car having the observed mpg given the model parameters for two observations.'}
+```{r, echo = FALSE, fig.cap = 'Figure 7. Likelihood of a car having the observed mpg given the model parameters for two observations.'}
 pt1 <- 1
 p1 <- ggplot() +
 	stat_function(fun = dnorm, n = 101,
@@ -249,7 +259,6 @@ plot_grid(p1, p2, ncol = 1)
 We can then calculate the likelihood for each observation in our data. Unlike OLS, we now want to *maximize* the sum of these values. Also, we are going to use the log of the likelihood so we can add them instead of multiplying. We can now define our log likelihood function:
 
 ```{r class.source = 'fold-show'}
-# TODO: Rename error to maybe root mean squared error (sd of the residuals?)
 loglikelihood <- function(parameters, predictor, outcome) {
 	a <- parameters[1]     # intercept
 	b <- parameters[2]     # slope / beta coefficient
@@ -259,7 +268,7 @@ loglikelihood <- function(parameters, predictor, outcome) {
 }
 ```
 
-Note that we have to estimate a third parameter, sigma, which is the error term and defines the standard deviation for the normal distribution for estimating the likelihood. We can now calculate the log-likelihood for any combination of parameters.
+Note that we have to estimate a third parameter, sigma, which is the error term and defines the standard deviation for the normal distribution for estimating the likelihood. This is connected to the distirubtion of the residuals as we will see later. We can now calculate the log-likelihood for any combination of parameters.
 
 ```{r class.source = 'fold-show'}
 loglikelihood(c(37, -5, sd(mtcars$mpg)),
@@ -269,9 +278,9 @@ loglikelihood(c(37, -5, sd(mtcars$mpg)),
 
 ## Maximum Likelihood Estimation
 
-We can now use the `optim_save` function to find the parameters that *maximize* the log-likelhood. Note two important parameter changes:
+We can now use the `optim_save` function to find the parameters that *maximize* the log-likelihood. Note two important parameter changes:
 
-1. We are specifying the `lower` parameter so that the algorithm will not try negative values for sigma since the variance cannont be negative.
+1. We are specifying the `lower` parameter so that the algorithm will not try negative values for sigma since the variance cannot be negative.
 2. The value for the `control` parameter indicates that we wish to maximize the values instead of minimizing (which is the default).
 
 ```{r class.source = 'fold-show'}
@@ -293,9 +302,9 @@ optim.ll$par[1:2]
 lm.out$coefficients
 ```
 
-Figure 7 shows the estimated regression line for each iteration of the optimization procedure (on the left; OLS regression line in blue; MLE regression line in black) with the estimated parameters and log-likelihood for all iterations on the left.
+Figure 8 shows the estimated regression line for each iteration of the optimization procedure (on the left; OLS regression line in blue; MLE regression line in black) with the estimated parameters and log-likelihood for all iterations on the left.
 
-```{r, cache = TRUE, fig.cap = 'Figure 7. Animation of parameter estimates for each iteration of the optimization procedure.'}
+```{r, echo = FALSE, cache = TRUE, fig.cap = 'Figure 8. Animation of parameter estimates for each iteration of the optimization procedure.'}
 df <- optim.ll$iterations_df
 names(df) <- c('Intercept', 'Slope', 'Sigma', 'LogLikelihood', 'Iteration')
 p1 <- ggplot(mtcars, aes(x = wt, y = mpg)) +
@@ -325,44 +334,20 @@ for(i in 2:100){
 new_gif
 ```
 
-Figure 8 superimposes the normal distribution from which the log-likelihood is determined. The distribution is centered on $\hat{y}$. The height of the distribution (i.e. density) at $y$ is the likelihood. We take the log of this value to get the log-likelihood. These log-likelihoods are calculated for each observation and summed. Maximum likelhood estimation is attempting to find the parameters (i.e. slope and intercept) that maximizes the log-likelhood.
+Figure 9 superimposes the normal distribution from which the log-likelihood is determined. The distribution is centered on $\hat{y}$. The height of the distribution (i.e. density) at $y$ is the likelihood. We take the log of this value to get the log-likelihood. These log-likelihoods are calculated for each observation and summed. Maximum likelihood estimation is attempting to find the parameters (i.e. slope and intercept) that maximizes the log-likelihood.
 
-```{r, fig.cap = 'Figure 8. Likelihood for one observeration superimposed on scatter plot.'}
-intercept <- optim.ll$par[1]
-slope <- optim.ll$par[2]
-sigma <- optim.ll$par[3]
-pt <- 2
-
-heightFactor <- 1 # Increase the multiplier to make the distribution higher
-k <- 4 # How many standard deviations to plot
-x <- seq(-k * sigma, k * sigma, length.out = 50)
-y <- dnorm(x, 0, sigma) / dnorm(0, 0, sigma) * heightFactor
-x0 <- mtcars[pt,]$wt
-y0 <- slope * x0 + intercept
-path <- data.frame(x = y + x0, y = x + y0)
-segment <- data.frame(x = x0, y = y0 - k*sigma, xend = x0, yend = y0 + k*sigma)
-segment2 <- data.frame(x = x0, 
-					   y = mtcars[pt,]$mpg, 
-					   xend = dnorm(abs(y0 - mtcars[pt,]$mpg), 0, sigma) / dnorm(0, 0, sigma) * heightFactor + x0, 
-					   yend = mtcars[pt,]$mpg)
-
-ggplot(mtcars, aes(x = wt, y = mpg)) +
-	# geom_smooth(method = lm, formula = y ~ x, se = FALSE) +
-	geom_abline(intercept = intercept, slope = slope) +
-	geom_point(data = mtcars, aes(x = wt, y = mpg)) +
-	geom_segment(data = segment, aes(x = x, y = y, xend = xend, yend = yend)) +
-	geom_segment(data = segment2, aes(x = x, y = y, xend = xend, yend = yend), color = 'red') +
-	geom_point(data = mtcars[pt,], aes(x = wt, y = mpg), color = 'red', size = 2) +
-	# geom_point(data = segment2, aes(x = xend, y = y), color = 'red', size = 2) +
-	geom_vline(xintercept = x0) +
-	# geom_hline(yintercept = y0) + # Verify the distribution is centered on y-hat
-	geom_path(data = path, aes(x,y), color = "blue")
+```{r, echo = TRUE, fig.cap = 'Figure 9. Likelihood for one observeration superimposed on scatter plot.'}
+visualMLE::plot_likelihood(x = mtcars$wt, 
+						   y = mtcars$mpg,
+						   pt = 2,
+						   intercept = optim.ll$par[1],
+						   slope = optim.ll$par[2],
+						   sigma = optim.ll$par[3])
 ```
 
+Figure 10 depicts the likelihoods for the first 16 observations.
 
-Figure 9 depicts the likelihoods for the first 16 observations.
-
-```{r, cache = TRUE, fig.cap = 'Figure 9. Likelihoods of the first 16 observations for the final parameter estimates.'}
+```{r, cache = TRUE, fig.cap = 'Figure 10. Likelihoods of the first 16 observations for the final parameter estimates.'}
 tmp <- df %>% filter(Iteration == nrow(df))
 plots <- list()
 nplots <- 16 #nrow(mtcars)
@@ -388,17 +373,26 @@ for(i in 1:min(nplots, nrow(mtcars))) {
 plot_grid(plotlist = plots)
 ```
 
+With MLE we need to estimate what is often referred to as the error term, or as we saw above is the standard deviation of the normal distribution from which we are estimating the likelihood from. In Figure 9 notice that the normal distribution id drawn vertically. This is because the likelihood is estimated from the error, or the residuals. In OLS we often report the root-mean-square deviation (RMSD, or root-mean-square error, RMSE). The RMSD is the standard deviation of the residuals:
+
+$$RMSD\  =\  \sqrt{\frac{\sum^{N}_{i=1} (x_{i}-\hat{x_{i}} )^{2}}{N} }$$
+Where $i$ is the observation, $x_i$ is the observed value, $\hat{x_i}$ is the estimated (predicted) value, and $N$ is the sample size. Below, we see that the numerical optizer matches the RMSD within a rounding error.
+
+```{r}
+optim.ll$par[3]
+sqrt(sum(resid(lm.out)^2) / nrow(mtcars))
+```
 
 
 ## Generalized Linear Models
 
-Generalized linear models (GLM) are a generalization of OLS that allows for the response variables (i.e. dependent variables) to have an error distribution that is not normally distributed. All generalized linear models have the following three characteristics:
+Generalized linear models (GLM) are a generalization of OLS that allows for the response variables (i.e. dependent variables) to have an error distribution that is not distributed normally. All generalized linear models have the following three characteristics:
 
-1. A probability distribution describing the outcome variable 
+1. A probability distribution describing the outcome variable .
 2. A linear model  
-	$\eta = \beta_0+\beta_1 X_1 + \cdots + \beta_n X_n$
+	$\eta = \beta_0+\beta_1 X_1 + \cdots + \beta_n X_n$.
 3. A link function that relates the linear model to the parameter of the outcome distribution  
-	$g(p) = \eta$ or $p = g^{-1}(\eta)$
+	$g(p) = \eta$ or $p = g^{-1}(\eta)$.
 
 We can estimate GLMs using MLE as described above. What will change is the log-likelihood function.
 
@@ -409,7 +403,7 @@ Logistic regression is a GLM used to model a binary categorical variable using n
 
 $$ \sigma \left( t \right) =\frac { { e }^{ t } }{ { e }^{ t }+1 } =\frac { 1 }{ 1+{ e }^{ -t } }  $$
 
-```{r, fig.cap = 'Figure 10. Logistic curve'}
+```{r, fig.cap = 'Figure 11. Logistic curve'}
 logistic <- function(t) { 
 	return(1 / (1 + exp(-t))) 
 }
@@ -431,7 +425,7 @@ The logistic function can now be rewritten as:
 
 $$ F\left( x \right) =\frac { 1 }{ 1+{ e }^{ -\left( { \beta  }_{ 0 }+\beta _{ 1 }x \right)  } } $$
 
-Consider the following data set where we wish to predict whether a student will pass an exam based upon the number of hours they studied.
+Consider the following data set where we wish to predict whether a student will pass an exam based upon the number of hours they studied.^[These data were retrived from the [Wikipedia article on logistic regresion](https://en.wikipedia.org/wiki/Logistic_regression)].
 
 ```{r class.source = 'fold-show'}
 study <- data.frame(
@@ -441,7 +435,7 @@ study <- data.frame(
 )
 ```
 
-```{r, fig.cap = 'Figure 11. Boxplot of hours studied by passing.'}
+```{r, echo=FALSE, fig.cap = 'Figure 12. Boxplot of hours studied by passing.'}
 ggplot(study, aes(x = factor(Pass), y = Hours)) + geom_boxplot() + xlab('Pass') + ylab('Hours Studied')
 ```
 
@@ -491,8 +485,6 @@ beta0 <- optim.binomial$par[1]
 beta1 <- optim.binomial$par[2]
 
 ggplot(study, aes(x = Hours, y = Pass)) +
-	# geom_smooth(method = 'glm', formula = y ~ x, se = FALSE,
-	# 			method.args = list(family = binomial(link = 'logit'))) +
 	geom_point(aes(color = logistic(Hours, beta0, beta1) > 0.5)) +
 	stat_function(fun = logistic, n = 101, 
 				  args = list(beta0 = beta0, beta1 = beta1) ) +
@@ -503,7 +495,7 @@ ggplot(study, aes(x = Hours, y = Pass)) +
 Let's explore the process of the numeric optimizer. For this model, it took `r nrow(optim.binomial$iterations_df)` iterations to converge to resulting parameters.
 
 
-```{r, cache = TRUE}
+```{r, echo = FALSE, cache = TRUE}
 df <- optim.binomial$iterations_df
 names(df) <- c('Intercept', 'Hours', 'LogLikelihood', 'Iteration')
 xlim <- c(0, 6) # Hard coding for now
@@ -552,7 +544,7 @@ new_gif
 ```
 
 
-```{r}
+```{r, echo = FALSE}
 pt <- 1
 beta0 <- optim.binomial$par[1]
 beta1 <- optim.binomial$par[2]

@@ -10,12 +10,12 @@ BugReports: https://github.com/jbryer/mle/issues
 Description: A visual approach to learning maximum likelihood estimation.
 License: GPL
 LazyLoad: yes
-VignetteBuilder: utils, knitr
+VignetteBuilder: knitr
 Depends:
     R (>= 4.0), ggplot2 (>= 2.2.0), shiny, stats
 Imports:
     tidyverse, reshape2, gganimate, magick, cowplot, DT
 Suggests:
-    devtools, knitr
+    devtools, knitr, rmarkdown
 RoxygenNote: 7.1.1
 Encoding: UTF-8

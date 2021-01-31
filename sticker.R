@@ -40,7 +40,7 @@ p <- ggplot(data.frame(x = x, y = y), aes(x = x, y = y)) +
 	geom_point(size = 0.25) +
 	geom_abline(intercept = intercept, slope = slope, alpha = 1, color = '#ff7f00') +
 	geom_segment(data = segment, aes(x = x, y = y, xend = xend, yend = yend), alpha = 0.5) +
-	geom_segment(data = segment2, aes(x = x, y = y, xend = xend, yend = yend), color = 'red') +
+	geom_segment(data = segment2, aes(x = x, y = y, xend = xend, yend = yend), color = '#e31a1c') +
 	geom_vline(xintercept = x0) +
 	geom_point(data = data.frame(x = x[pt], y = y[pt]), color = '#e31a1c', size = 1) +
 	geom_path(data = path, aes(x = x, y = y), color = "#33a02c") +
@@ -49,13 +49,13 @@ p <- ggplot(data.frame(x = x, y = y), aes(x = x, y = y)) +
 p
 
 hexSticker::sticker(p,
-					filename = 'MLE.png',
+					filename = 'visualMLE.png',
 					p_size = 4,
-					package = 'Maximum\nLikelihood Estimation',
-					url = "https://github.com/jbryer/mle",
+					package = 'Visual Maximum\nLikelihood Estimation',
+					url = "github.com/jbryer/visualMLE",
 					s_width = 1.5, s_height = 1,
-					s_x = 1, s_y = 0.75,
-					p_x = 1, p_y = 1.5,
+					s_x = 1, s_y = 0.73,
+					p_x = 1, p_y = 1.44,
 					p_color = "#FFFFFF",
 					h_fill = '#a6cee3',
 					h_color = '#1f78b4',

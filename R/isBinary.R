@@ -3,7 +3,7 @@
 #' This function checks to see if a vector is dichotomous. This includes
 #' logical vectors and numeric vectors that contain only 0s and 1s.
 #'
-#' @parma x vector to check.
+#' @param x vector to check.
 #' @return TRUE if the vector is binary.
 #' @export
 isBinary <- function(x) {

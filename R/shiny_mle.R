@@ -5,5 +5,5 @@
 #' @references http://rstudio.com/shiny
 #' @export
 shiny_mle <- function() {
-	shiny::runApp(system.file('shiny', package='mle'))
+	shiny::runApp(system.file('shiny', package='visualMLE'))
 }

@@ -7,3 +7,4 @@ visualMLE.png
 ^\.Rproj\.user$
 vignettes/mle_cache
 vignettes/mle_files
+^doc$
