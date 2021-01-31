@@ -6,7 +6,7 @@
 **Author:** Jason Bryer, Ph.D. jason.bryer@cuny.edu  
 **Website:** https://github.com/jbryer/visualMLE
 
-[Click here to view the *draft* document.](https://htmlpreview.github.io/?https://github.com/jbryer/visualMLE/blob/main/vignettes/mle.html)
+[Click here to view the *draft* document.](https://htmlpreview.github.io/?https://github.com/jbryer/visualMLE/blob/master/vignettes/mle.html)
 
 To install the package, run:
 
