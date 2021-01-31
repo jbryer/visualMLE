@@ -1,0 +1,21 @@
+Package: visualMLE
+Type: Package
+Title: Visual Maximum Likelihood Estimation
+Version: 0.9
+Date: 2021-01-29
+Author: Jason Bryer <jason@bryer.org>
+Maintainer: Jason Bryer <jason@bryer.org>
+URL: https://github.com/jbryer/mle
+BugReports: https://github.com/jbryer/mle/issues
+Description: A visual approach to learning maximum likelihood estimation.
+License: GPL
+LazyLoad: yes
+VignetteBuilder: utils, knitr
+Depends:
+    R (>= 4.0), ggplot2 (>= 2.2.0), shiny, stats
+Imports:
+    tidyverse, reshape2, gganimate, magick, cowplot, DT
+Suggests:
+    devtools, knitr
+RoxygenNote: 7.1.1
+Encoding: UTF-8

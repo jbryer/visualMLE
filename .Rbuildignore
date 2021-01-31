@@ -1,0 +1,9 @@
+sticker.R
+build.R
+.Rhistory
+visualMLE.Rproj
+visualMLE.png
+^.*\.Rproj$
+^\.Rproj\.user$
+vignettes/mle_cache
+vignettes/mle_files
