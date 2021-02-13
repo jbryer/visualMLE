@@ -6,7 +6,7 @@
 #' @param k the number of standard deviations to plot
 #' @param height the proportion of the x-axis the distribution should occupy.
 #'        That is, a height of 0.4 means the width of the distribution will
-#'        occupy approximately 40% of the plot width.
+#'        occupy approximately 40 percent of the plot width.
 #' @param pt the point to highlight and draw the likelihood of.
 #' @export
 plot_likelihood <- function(x, y, height = 0.4, k = 4, pt = 1,

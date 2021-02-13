@@ -23,7 +23,7 @@ plot_likelihood(
 
 \item{height}{the proportion of the x-axis the distribution should occupy.
 That is, a height of 0.4 means the width of the distribution will
-occupy approximately 40% of the plot width.}
+occupy approximately 40 percent of the plot width.}
 
 \item{k}{the number of standard deviations to plot}
 
