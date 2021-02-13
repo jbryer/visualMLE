@@ -4,7 +4,7 @@
 \alias{shiny_mle}
 \title{Visualizing Maximum Likelihood Estimation Shiny Application}
 \usage{
-shiny_mle()
+shiny_mle(df, default_x, default_y, ...)
 }
 \description{
 This will start a shiny app explore maximum likelihood estimation visually.

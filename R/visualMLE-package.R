@@ -9,8 +9,10 @@
 #' @import gganimate
 #' @import magick
 #' @import cowplot
-#' @import DT
 #' @import reshape2
+#' @import ggplot2
+#' @importFrom shiny runApp shinyApp
+#' @importFrom DT dataTableOutput renderDataTable
 NA
 
 .onAttach <- function(libname, pkgname) {

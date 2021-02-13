@@ -12,7 +12,7 @@ To install the package, run:
 remotes::install_github('jbryer/visualMLE')
 ```
 
-Draft document explaining this visual approach to maximum likelihood estimation is availabe as a vignette.
+Draft document explaining this visual approach to maximum likelihood estimation is available [on Github](https://htmlpreview.github.io/?https://github.com/jbryer/visualMLE/blob/master/vignettes/mle.html) or as a vignette.
 
 ```
 vignette('mle', package = 'visualMLE')
@@ -22,6 +22,12 @@ To run the accompanying shiny app, execute the following command:
 
 ```
 visualMLE::shiny_mle()
+```
+
+If you wish to use your own dataset, specify the `df` parameter:
+
+```
+visualMLE::shiny_mle(df = faithful)
 ```
 
 ----------
