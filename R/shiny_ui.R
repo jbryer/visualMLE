@@ -47,5 +47,5 @@ shiny_ui <-  function() { navbarPage(
 	# ),
 
 	tabPanel('About',
-			 includeMarkdown(paste0(find.package('visualMLE'), '/about.md')))
+			 includeMarkdown(paste0(find.package('visualMLE'), '/shiny/about.md')))
 )}
