@@ -92,10 +92,10 @@ datatable(ols) %>% formatRound(columns = names(ols), digits=3)
 ggplot(ols, aes(x = r, y = ss)) + geom_path() + geom_point()
 ```
 
-The correlation with the correlation the resulted in the smallest RSS is `r ols %>% filter(ss == min(ss)) %>% select(r) %>% unname()`.
+The correlation with the correlation the resulted in the smallest RSS is `r ols %>% dplyr::filter(ss == min(ss)) %>% select(r) %>% unname()`.
 
 ```{r class.source = 'fold-show'}
-ols %>% filter(ss == min(ss)) # Select the row with the smallest sum of squares residuals
+ols %>% dplyr::filter(ss == min(ss)) # Select the row with the smallest sum of squares residuals
 ```
 
 Calculating the correlation in R gives us `r cor(x, y)` and the slope is `r cor(x, y) * (sd.y / sd.x)` which is close to our estimate here. We could get a more accurate result if we tried smaller steps in the correlation (see the `by` parameter in the `seq` function above).
@@ -348,7 +348,7 @@ visualMLE::plot_likelihood(x = mtcars$wt,
 Figure 10 depicts the likelihoods for the first 16 observations.
 
 ```{r, cache = TRUE, fig.cap = 'Figure 10. Likelihoods of the first 16 observations for the final parameter estimates.'}
-tmp <- df %>% filter(Iteration == nrow(df))
+tmp <- df %>% dplyr::filter(Iteration == nrow(df))
 plots <- list()
 nplots <- 16 #nrow(mtcars)
 for(i in 1:min(nplots, nrow(mtcars))) {

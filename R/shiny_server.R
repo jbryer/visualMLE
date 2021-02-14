@@ -209,7 +209,7 @@ shiny_server <- function(input, output, session) {
 			row <- thedata[input$highlight,]
 			df <- optim_run$iterations_df
 			if(!visualMLE::isBinary(thedata[,input$outcome])) {
-				tmp <- df %>% filter(Iteration == input$iteration)
+				tmp <- df %>% dplyr::filter(Iteration == input$iteration)
 				a <- tmp[1,1]
 				b <- tmp[1,2]
 				sigma <- tmp[1,3]
@@ -264,7 +264,7 @@ shiny_server <- function(input, output, session) {
 
 	output$likelihood_plots <- renderPlot({
 		df <- getData()$iterations_df
-		tmp <- df %>% filter(Iteration == input$iteration)
+		tmp <- df %>% dplyr::filter(Iteration == input$iteration)
 		plots <- list()
 		nplots <- nrow(thedata)
 		if(!visualMLE::isBinary(thedata[,input$outcome])) {
