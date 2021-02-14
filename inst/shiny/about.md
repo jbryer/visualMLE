@@ -1,6 +1,6 @@
 # Visual Introduction to Maximum Likelihood Estimation
 
-<a href='https://github.com/jbryer/visualMLE'><img src='https://github.com/jbryer/visualMLE/visualMLE.png' align="right" height="200" /></a>
+<a href='https://github.com/jbryer/visualMLE'><img src='https://github.com/jbryer/visualMLE/raw/master/visualMLE.png' align="right" height="200" /></a>
 
 
 **Author:** Jason Bryer, Ph.D. jason.bryer@cuny.edu
