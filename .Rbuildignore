@@ -8,3 +8,4 @@ visualMLE.png
 vignettes/mle_cache
 vignettes/mle_files
 ^doc$
+^Meta$

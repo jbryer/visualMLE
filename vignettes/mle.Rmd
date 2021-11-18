@@ -268,7 +268,7 @@ loglikelihood <- function(parameters, predictor, outcome) {
 }
 ```
 
-Note that we have to estimate a third parameter, sigma, which is the error term and defines the standard deviation for the normal distribution for estimating the likelihood. This is connected to the distirubtion of the residuals as we will see later. We can now calculate the log-likelihood for any combination of parameters.
+Note that we have to estimate a third parameter, sigma, which is the error term and defines the standard deviation for the normal distribution for estimating the likelihood. This is connected to the distribution of the residuals as we will see later. We can now calculate the log-likelihood for any combination of parameters.
 
 ```{r class.source = 'fold-show'}
 loglikelihood(c(37, -5, sd(mtcars$mpg)),
@@ -376,7 +376,7 @@ plot_grid(plotlist = plots)
 With MLE we need to estimate what is often referred to as the error term, or as we saw above is the standard deviation of the normal distribution from which we are estimating the likelihood from. In Figure 9 notice that the normal distribution id drawn vertically. This is because the likelihood is estimated from the error, or the residuals. In OLS we often report the root-mean-square deviation (RMSD, or root-mean-square error, RMSE). The RMSD is the standard deviation of the residuals:
 
 $$RMSD\  =\  \sqrt{\frac{\sum^{N}_{i=1} (x_{i}-\hat{x_{i}} )^{2}}{N} }$$
-Where $i$ is the observation, $x_i$ is the observed value, $\hat{x_i}$ is the estimated (predicted) value, and $N$ is the sample size. Below, we see that the numerical optizer matches the RMSD within a rounding error.
+Where $i$ is the observation, $x_i$ is the observed value, $\hat{x_i}$ is the estimated (predicted) value, and $N$ is the sample size. Below, we see that the numerical optimizer matches the RMSD within a rounding error.
 
 ```{r}
 optim.ll$par[3]

@@ -6,7 +6,9 @@
 **Author:** Jason Bryer, Ph.D. jason.bryer@cuny.edu  
 **Website:** https://github.com/jbryer/visualMLE
 
-[Click here to view the *draft* document.](https://htmlpreview.github.io/?https://github.com/jbryer/visualMLE/blob/master/vignettes/mle.html)
+
+[Visual Introduction to Maximum Likelihood Estimation](https://htmlpreview.github.io/?https://github.com/jbryer/visualMLE/blob/master/doc/mle.html)  
+[The Path to Log Likelihood](https://htmlpreview.github.io/?https://github.com/jbryer/visualMLE/blob/master/doc/log_likelihood.html)
 
 To install the package, run:
 
