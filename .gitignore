@@ -40,3 +40,6 @@ mle_cache
 # R Environment Variables
 .Renviron
 /Meta/
+
+vignettes/mle_files/
+/doc/

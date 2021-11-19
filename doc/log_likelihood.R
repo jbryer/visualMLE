@@ -166,11 +166,11 @@ study$log_likelihood <- study$Pass * log(study$likelihood) +         # If Pass =
 
 ## -----------------------------------------------------------------------------
 ggplot(data = study, aes(x = Hours, y = Pass)) + 
-	# geom_smooth(method = 'glm', method.args = list(family=binomial(link='logit')), se = FALSE) +
+	geom_smooth(method = 'glm', method.args = list(family=binomial(link='logit')), se = FALSE, alpha = 0.2) +
 	geom_hline(yintercept = 0) +
-	geom_function(fun = logit, color = 'grey70',
+	geom_function(fun = logit, color = 'grey50', size = 1,
 				  args = list(beta0 = optim_binomial$par[1], beta1 = optim_binomial$par[2])) +
-	geom_segment(aes(xend = Hours, yend = likelihood), color = 'grey50') +
+	geom_segment(aes(xend = Hours, y = 1 - Pass, yend = likelihood, color = factor(Pass)), alpha = 0.5) +
 	geom_point(aes(y = likelihood, color = factor(Pass), shape = 'Predicted'), size = 3) +
 	geom_point(aes(color = factor(Pass), shape = 'Observed'), size = 3) +
 	geom_point(aes(y = log_likelihood, color = factor(Pass), shape = 'Log Likelihood'), size = 3) +

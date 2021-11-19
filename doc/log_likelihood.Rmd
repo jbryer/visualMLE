@@ -232,7 +232,7 @@ ggplot() + geom_function(fun = log) + xlim(0, 1)
 
 Since $log(1) = 0$, we want to reverse the likelihood, that is, we will take the $log(1 - likelihood)$ so that smaller errors result in larger log-likelihood values.
 
-To put this all together, we will calculate the likelihood (i.e. predicted value using the logistic function), and the log-likelihood (what we maximized). The plot shows the observed values (as triangles), predicted values (as squares), and the log-likelihood (as circles). When we take the log of one minus the likelihood the values we get values less than zero, hence the need to maximize those values instead of minimizing.
+To put this all together, we will calculate the likelihood (i.e. predicted value using the logistic function), and the log-likelihood (what we maximized). The plot shows the observed values (as triangles), predicted values (as squares), and the log-likelihood (as circles). The lines represent the values we are taking the log of. That is, if Pass == 0, then we take the log of 1 - likelihood; conversely if Pass == 1 then we take the log of the likelihood. The circles below the line y = 0 are the log values. As can be seen, since they are all negative we wish to maximize the sum of their values to achieve the best fit.
 
 ```{r}
 study$likelihood <- logit(study$Hours,								   
@@ -244,11 +244,11 @@ study$log_likelihood <- study$Pass * log(study$likelihood) +         # If Pass =
 
 ```{r}
 ggplot(data = study, aes(x = Hours, y = Pass)) + 
-	# geom_smooth(method = 'glm', method.args = list(family=binomial(link='logit')), se = FALSE) +
+	geom_smooth(method = 'glm', method.args = list(family=binomial(link='logit')), se = FALSE, alpha = 0.2) +
 	geom_hline(yintercept = 0) +
-	geom_function(fun = logit, color = 'grey70',
+	geom_function(fun = logit, color = 'grey50', size = 1,
 				  args = list(beta0 = optim_binomial$par[1], beta1 = optim_binomial$par[2])) +
-	geom_segment(aes(xend = Hours, yend = likelihood), color = 'grey50') +
+	geom_segment(aes(xend = Hours, y = 1 - Pass, yend = likelihood, color = factor(Pass)), alpha = 0.5) +
 	geom_point(aes(y = likelihood, color = factor(Pass), shape = 'Predicted'), size = 3) +
 	geom_point(aes(color = factor(Pass), shape = 'Observed'), size = 3) +
 	geom_point(aes(y = log_likelihood, color = factor(Pass), shape = 'Log Likelihood'), size = 3) +

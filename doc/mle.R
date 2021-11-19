@@ -187,6 +187,35 @@ optim.ll <- optim_save(
 optim.ll$par[1:2]
 lm.out$coefficients
 
+## ---- echo = FALSE, cache = TRUE, fig.cap = 'Figure 8. Animation of parameter estimates for each iteration of the optimization procedure.'----
+df <- optim.ll$iterations_df
+names(df) <- c('Intercept', 'Slope', 'Sigma', 'LogLikelihood', 'Iteration')
+p1 <- ggplot(mtcars, aes(x = wt, y = mpg)) +
+	geom_smooth(method = lm, formula = y ~ x, se = FALSE) +
+	geom_abline(data = df, aes(intercept = Intercept, slope = Slope)) +
+	geom_point(data = mtcars, aes(x = wt, y = mpg)) +
+	transition_time(Iteration) +
+	labs(title = "Iteration: {frame_time}") +
+	shadow_wake(wake_length = 0.1, alpha = FALSE)
+p1_gif <- animate(p1, width = 480, height = 480)
+
+df.melt <- df %>% melt(id.var = 'Iteration')
+p2 <- ggplot(df.melt, aes(x = Iteration, y = value, color = variable)) +
+	geom_vline(data = data.frame(Iteration2 = df$Iteration),
+			   aes(xintercept = Iteration2, frame = Iteration2)) +
+	geom_path() +
+	facet_wrap(~ variable, scales = "free_y", ncol = 1) +
+	xlab('Iteration') + ylab('Parameter Estimate') +
+	transition_time(Iteration2)
+p2_gif <- animate(p2, width = 480, height = 480)
+
+new_gif <- image_append(c(p1_gif[1], p2_gif[1]))
+for(i in 2:100){
+	combined <- image_append(c(p1_gif[i], p2_gif[i]))
+	new_gif <- c(new_gif, combined)
+}
+new_gif
+
 ## ---- echo = TRUE, fig.cap = 'Figure 9. Likelihood for one observeration superimposed on scatter plot.'----
 visualMLE::plot_likelihood(x = mtcars$wt, 
 						   y = mtcars$mpg,
@@ -194,6 +223,31 @@ visualMLE::plot_likelihood(x = mtcars$wt,
 						   intercept = optim.ll$par[1],
 						   slope = optim.ll$par[2],
 						   sigma = optim.ll$par[3])
+
+## ---- cache = TRUE, fig.cap = 'Figure 10. Likelihoods of the first 16 observations for the final parameter estimates.'----
+tmp <- df %>% dplyr::filter(Iteration == nrow(df))
+plots <- list()
+nplots <- 16 #nrow(mtcars)
+for(i in 1:min(nplots, nrow(mtcars))) {
+	a <- tmp[1,]$Intercept
+	b <- tmp[1,]$Slope
+	sigma <- tmp[1,]$Sigma
+	predictor <- mtcars$wt[i]
+	predicted.out <- a + b * predictor
+	outcome <- mtcars$mpg[i]
+	d <- dnorm(outcome, predicted.out, sigma)
+	plots[[i]] <- ggplot() +
+		stat_function(fun = dnorm,
+					  n = 101,
+					  args = list(mean = predicted.out, sd = sigma)) +
+		annotate(geom = 'segment', x = outcome, y = 0, xend = outcome, yend = d, color = 'red') +
+		annotate(geom = 'point', x = outcome, y = d, color = 'red', size = 2) +
+		xlim(c(min(mtcars$mpg, predicted.out - 3 * sigma),
+			   max(mtcars$mpg, predicted.out + 3 * sigma))) +
+		ylim(c(0, .2)) +
+		ylab('') + xlab(row.names(mtcars)[i])
+}
+plot_grid(plotlist = plots)
 
 ## -----------------------------------------------------------------------------
 optim.ll$par[3]
@@ -259,6 +313,53 @@ ggplot(study, aes(x = Hours, y = Pass)) +
 				  args = list(beta0 = beta0, beta1 = beta1) ) +
 	scale_color_hue('Predicted Pass > 0.5') +
 	theme(legend.position = c(0.85, 0.15))
+
+## ---- echo = FALSE, cache = TRUE----------------------------------------------
+df <- optim.binomial$iterations_df
+names(df) <- c('Intercept', 'Hours', 'LogLikelihood', 'Iteration')
+xlim <- c(0, 6) # Hard coding for now
+df2 <- data.frame(Iteration = rep(1:nrow(df), each = 100))
+xvals <- seq(xlim[1], xlim[2], length.out = 100)
+tmp <- apply(
+	df, 1, FUN = function(x) {
+		logistic(xvals, x[1], x[2])
+	}
+) %>% as.data.frame()
+names(tmp) <- 1:ncol(tmp)
+tmp <- melt(tmp)
+names(tmp) <- c('Iteration', 'Pass')
+tmp$Hours <- rep(xvals, nrow(df))
+
+nFrames <- nrow(df) * 2
+p1 <- ggplot() + 
+	geom_smooth(data = study, aes(x = Hours, y = Pass),
+		method = 'glm', formula = y ~ x, se = FALSE, alpha = 0.5,
+		method.args = list(family = binomial(link = 'logit'))) +
+	geom_point(data = study, aes(x = Hours, y = Pass)) + 
+	geom_path(data = tmp, aes(x = Hours, y = Pass, group = Iteration)) +
+	transition_states(Iteration) +
+	labs(title = "Iteration: {round(frame/2)}") +
+	shadow_wake(wake_length = 0.1, alpha = FALSE) +
+	ease_aes("cubic-in")
+p1_gif <- animate(p1, nframes = nFrames, width = 480, height = 480)
+
+df.melt <- df %>% melt(id.var = 'Iteration')
+p2 <- ggplot(df.melt, aes(x = Iteration, y = value, color = variable)) +
+	geom_vline(data = data.frame(Iteration2 = df$Iteration),
+			   aes(xintercept = Iteration2, frame = Iteration2)) +
+	geom_path() +
+	facet_wrap(~ variable, scales = "free_y", ncol = 1) +
+	xlab('Iteration') + ylab('Parameter Estimate') +
+	theme(legend.position = 'none') +
+	transition_time(Iteration2)
+p2_gif <- animate(p2, nframes = nFrames, width = 480, height = 480)
+
+new_gif <- image_append(c(p1_gif[1], p2_gif[1]))
+for(i in 2:nFrames){
+	combined <- image_append(c(p1_gif[i], p2_gif[i]))
+	new_gif <- c(new_gif, combined)
+}
+new_gif
 
 ## ---- echo = FALSE------------------------------------------------------------
 pt <- 1
